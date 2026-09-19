@@ -11,7 +11,10 @@ require("dotenv").config();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: [
+      "http://localhost:5173",
+      "https://career-code-client-20f2a.web.app",
+    ],
     credentials: true,
   }),
 );
