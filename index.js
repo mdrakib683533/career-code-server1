@@ -140,21 +140,32 @@ app.get("/jobs", async (req, res) => {
   res.send(result);
 });
 
-app.get("/jobs/applications",verifyFirebaseToken, async (req, res) => {
-  const email = req.query.email;
-  const query = { hr_email: email };
-  const jobs = await jobsCollection.find(query).toArray();
+app.get("/jobs/applications", verifyFirebaseToken, async (req, res) => {
+  try {
+    const email = req.query.email;
 
-  // should use aggregate to have optimum data fetching
+    const query = { hr_email: email };
 
-  for (const job of jobs) {
-    const applicationQuery = { jobId: job._id.toString() };
-    const application_count =
-      await applicationsCollection.countDocuments(applicationQuery);
-    job.application_count = application_count;
+    const jobs = await jobsCollection.find(query).toArray();
+
+    for (const job of jobs) {
+      const applicationQuery = { jobId: job._id.toString() };
+
+      const application_count =
+        await applicationsCollection.countDocuments(applicationQuery);
+
+      job.application_count = application_count;
+    }
+
+    res.send(jobs);
+  } catch (error) {
+    console.error("GET /jobs/applications error:", error);
+
+    res.status(500).send({
+      message: "Internal Server Error",
+      error: error.message,
+    });
   }
-
-  res.send(jobs);
 });
 
 app.get("/jobs/:id", async (req, res) => {
