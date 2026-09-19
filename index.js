@@ -140,7 +140,7 @@ app.get("/jobs", async (req, res) => {
   res.send(result);
 });
 
-app.get("/jobs/applications", verifyToken, async (req, res) => {
+app.get("/jobs/applications",verifyFirebaseToken, async (req, res) => {
   const email = req.query.email;
   const query = { hr_email: email };
   const jobs = await jobsCollection.find(query).toArray();
