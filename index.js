@@ -21,16 +21,31 @@ app.use(cookieParser());
 // firebase admin
 const { getApps, initializeApp, cert } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
+const fs = require("fs");
+
+let firebaseCredential;
+
+if (process.env.FIREBASE_PRIVATE_KEY) {
+  // Vercel / production
+  firebaseCredential = cert({
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+  });
+} else {
+  // Local development
+  const serviceAccount = JSON.parse(
+    fs.readFileSync("./firebase-admin-key.json", "utf8"),
+  );
+
+  firebaseCredential = cert(serviceAccount);
+}
 
 const firebaseApp =
   getApps().length > 0
     ? getApps()[0]
     : initializeApp({
-        credential: cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-        }),
+        credential: firebaseCredential,
       });
 
 const verifyToken = (req, res, next) => {
