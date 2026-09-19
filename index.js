@@ -227,10 +227,7 @@ app.patch("/applications/:id", async (req, res) => {
     },
   };
 
-  const result = await applicationsCollection.updateOne(
-    filter,
-    updatedDoc,
-  );
+  const result = await applicationsCollection.updateOne(filter, updatedDoc);
 
   res.send(result);
 });
@@ -244,16 +241,13 @@ app.patch("/applications/:id", async (req, res) => {
 async function run() {
   try {
     await client.connect();
-
-    await client.db("admin").command({ ping: 1 });
-
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log("MongoDB connected successfully!");
   } catch (error) {
-    console.error(error);
+    console.error("MongoDB connection error:", error);
   }
 }
 
-run().catch(console.dir);
+run();
 
 app.get("/", (req, res) => {
   res.send("career code is testing");
