@@ -68,23 +68,36 @@ const verifyToken = (req, res, next) => {
 };
 
 const verifyFirebaseToken = async (req, res, next) => {
-  const authHeader = req?.headers?.authorization;
+  try {
+    const authHeader = req?.headers?.authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).send({ message: "unauthorized access" });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).send({
+        message: "unauthorized access",
+      });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).send({
+        message: "unauthorized access",
+      });
+    }
+
+    const userInfo = await getAuth().verifyIdToken(token);
+
+    req.tokenEmail = userInfo.email;
+
+    next();
+  } catch (error) {
+    console.error("Firebase token verification error:", error);
+
+    return res.status(401).send({
+      message: "Invalid or expired Firebase token",
+    });
   }
-
-  const token = authHeader.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).send({ message: "unauthorized access" });
-  }
-
-  const userInfo = await getAuth().verifyIdToken(token);
-  req.tokenEmail = userInfo.email;
-  next();
 };
-
 // ADD THIS
 const logger = (req, res, next) => {
   next();
@@ -199,33 +212,52 @@ app.post("/jobs", async (req, res) => {
 // job applications related api
 
 app.get("/applications", logger, verifyFirebaseToken, async (req, res) => {
-  const email = req.query.email;
+  try {
+    const email = req.query.email;
 
-  if (req.tokenEmail != email) {
-    return res.status(403).send({ message: "forbidden access" });
+    if (req.tokenEmail !== email) {
+      return res.status(403).send({
+        message: "forbidden access",
+      });
+    }
+
+    const query = {
+      applicant: email,
+    };
+
+    await connectDB();
+
+    const result = await applicationsCollection.find(query).toArray();
+
+    for (const application of result) {
+      const jobId = application.jobId;
+
+      if (!jobId) {
+        continue;
+      }
+
+      const jobQuery = {
+        _id: new ObjectId(jobId),
+      };
+
+      const job = await jobsCollection.findOne(jobQuery);
+
+      if (job) {
+        application.company = job.company;
+        application.title = job.title;
+        application.company_logo = job.company_logo;
+      }
+    }
+
+    res.send(result);
+  } catch (error) {
+    console.error("GET /applications error:", error);
+
+    res.status(500).send({
+      message: "Internal Server Error",
+      error: error.message,
+    });
   }
-
-  const query = {
-    applicant: email,
-  };
-
-  await connectDB();
-
-  const result = await applicationsCollection.find(query).toArray();
-
-  // bad way to aggregate data
-
-  for (const application of result) {
-    const jobId = application.jobId;
-    const jobQuery = { _id: new ObjectId(jobId) };
-    const job = await jobsCollection.findOne(jobQuery);
-
-    application.company = job.company;
-    application.title = job.title;
-    application.company_logo = job.company_logo;
-  }
-
-  res.send(result);
 });
 
 app.get("/applications/job/:job_id", async (req, res) => {
