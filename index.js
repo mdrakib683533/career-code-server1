@@ -250,6 +250,27 @@ app.patch("/applications/:id", async (req, res) => {
 //   "Pinged your deployment. You successfully connected to MongoDB!",
 // );
 
+
+app.get("/db-test", async (req, res) => {
+  try {
+    await client.connect();
+
+    await client.db("admin").command({ ping: 1 });
+
+    res.send({
+      success: true,
+      message: "MongoDB connected successfully",
+    });
+  } catch (error) {
+    console.error("DB TEST ERROR:", error);
+
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
 async function run() {
   try {
     await client.connect();
