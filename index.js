@@ -101,6 +101,16 @@ const client = new MongoClient(uri, {
   },
 });
 
+let db;
+
+const connectDB = async () => {
+  if (!db) {
+    await client.connect();
+    db = client.db("careerCode");
+  }
+  return db;
+};
+
 // this project github and vercel deploy successfully connected
 
 const jobsCollection = client.db("careerCode").collection("jobs");
@@ -146,6 +156,8 @@ app.get("/jobs/applications", verifyFirebaseToken, async (req, res) => {
     const email = req.query.email;
 
     const query = { hr_email: email };
+
+    await connectDB();
 
     const jobs = await jobsCollection.find(query).toArray();
 
@@ -196,6 +208,8 @@ app.get("/applications", logger, verifyFirebaseToken, async (req, res) => {
   const query = {
     applicant: email,
   };
+
+  await connectDB();
 
   const result = await applicationsCollection.find(query).toArray();
 
@@ -249,7 +263,6 @@ app.patch("/applications/:id", async (req, res) => {
 // console.log(
 //   "Pinged your deployment. You successfully connected to MongoDB!",
 // );
-
 
 app.get("/db-test", async (req, res) => {
   try {
