@@ -253,6 +253,9 @@ app.patch("/applications/:id", async (req, res) => {
 
 app.get("/db-test", async (req, res) => {
   try {
+    console.log("DB_USER exists:", !!process.env.DB_USER);
+    console.log("DB_PASS exists:", !!process.env.DB_PASS);
+
     await client.connect();
 
     await client.db("admin").command({ ping: 1 });
