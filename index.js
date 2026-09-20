@@ -232,6 +232,8 @@ app.get("/applications", logger, verifyFirebaseToken, async (req, res) => {
     for (const application of result) {
       const jobId = application.jobId;
 
+       console.log("JOB ID:", jobId);
+
       if (!jobId) {
         continue;
       }
