@@ -274,16 +274,16 @@ app.get("/db-test", async (req, res) => {
   }
 });
 
-async function run() {
-  try {
-    await client.connect();
-    console.log("MongoDB connected successfully!");
-  } catch (error) {
-    console.error("MongoDB connection error:", error);
-  }
-}
+// async function run() {
+//   try {
+//     await client.connect();
+//     console.log("MongoDB connected successfully!");
+//   } catch (error) {
+//     console.error("MongoDB connection error:", error);
+//   }
+// }
 
-run();
+// run();
 
 app.get("/", (req, res) => {
   res.send("career code is testing");
