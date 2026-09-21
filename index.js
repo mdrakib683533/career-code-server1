@@ -249,8 +249,6 @@ app.get("/applications", logger, verifyFirebaseToken, async (req, res) => {
 
       const job = await jobsCollection.findOne(jobQuery);
 
-      console.log("JOB ID:", jobId);
-      console.log("FOUND JOB:", job);
       if (job) {
         application.company = job.company;
         application.title = job.title;
